@@ -16,6 +16,7 @@
             font-family: 'Nunito', sans-serif;
             background: linear-gradient(135deg, #fff5f5 0%, #fed7e2 100%);
             overflow-x: hidden;
+            touch-action: pan-y;
         }
         
         .handwriting {
@@ -38,41 +39,68 @@
 
         /* Fade In Animation for Letter */
         .fade-in {
-            animation: fadeIn 1.2s ease-out forwards;
+            animation: fadeIn 1s ease-out forwards;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(50px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Envelope Open Animation */
-        .fade-out {
-            animation: fadeOut 0.6s ease-in forwards;
+        /* Envelope Design */
+        .envelope-bg {
+            background: #f43f5e;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
 
-        @keyframes fadeOut {
-            to { opacity: 0; transform: scale(1.1); pointer-events: none; }
+        /* Slider Styles */
+        .slider-container {
+            width: 100%;
+            max-width: 280px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 50px;
+            position: relative;
+            padding: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            margin: 20px auto;
+            overflow: hidden;
         }
 
-        /* Confetti Canvas */
-        #confetti-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+        .slider-handle {
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f43f5e;
+            cursor: grab;
+            position: absolute;
+            left: 5px;
+            z-index: 2;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.1s ease;
+        }
+
+        .slider-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            left: 0;
+            top: 0;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.9rem;
             pointer-events: none;
-            z-index: 50;
-            touch-action: none;
-        }
-        
-        /* Envelope Bounce */
-        .bounce-slight {
-            animation: bounce 2.5s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(-3%); }
-            50% { transform: translateY(0); }
+            opacity: 0.8;
+            letter-spacing: 1px;
         }
 
         .letter-bg {
@@ -80,70 +108,81 @@
             background-size: 20px 20px;
             background-color: #ffffff;
         }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .hidden-card {
+            display: none;
+            opacity: 0;
+        }
     </style>
 </head>
 <body class="min-h-[100dvh] flex items-center justify-center relative overflow-hidden">
 
-    <!-- Background Elements -->
     <div id="hearts-container" class="absolute inset-0 overflow-hidden pointer-events-none z-0"></div>
 
-    <!-- ENVELOPE VIEW (Ban đầu) -->
-    <div id="envelope" class="z-20 cursor-pointer group transition-transform duration-300 hover:scale-105 active:scale-95 text-center px-4">
-        <div class="relative w-64 h-44 md:w-80 md:h-56 bg-gradient-to-br from-rose-400 to-pink-500 rounded-lg shadow-2xl flex items-center justify-center mx-auto bounce-slight border-4 border-white">
-            <!-- Envelope Design -->
-            <div class="absolute top-0 left-0 w-full h-full overflow-hidden rounded-lg">
-                <div class="absolute -top-[50%] left-[50%] -translate-x-1/2 w-[140%] h-full bg-rose-300 transform rotate-45 border-b-2 border-white opacity-40"></div>
-            </div>
+    <!-- ENVELOPE VIEW -->
+    <div id="envelope-view" class="z-20 text-center px-4 w-full transition-all duration-700">
+        <div class="relative w-72 h-48 md:w-96 md:h-64 envelope-bg rounded-xl mx-auto flex flex-col items-center justify-center border-4 border-white">
+            <!-- Decorative Flap -->
+            <div class="absolute top-0 left-0 w-full h-1/2 bg-rose-400 rounded-t-xl" style="clip-path: polygon(0 0, 100% 0, 50% 100%);"></div>
             
-            <!-- Heart Seal -->
-            <div class="w-14 h-14 md:w-16 md:h-16 bg-white rounded-full flex items-center justify-center shadow-lg z-10 text-rose-500 group-hover:scale-110 transition-transform">
-                <i data-lucide="mail-open" class="w-7 h-7 md:w-8 md:h-8"></i>
+            <div class="z-10 mt-8 text-white">
+                <h2 class="text-2xl md:text-3xl font-bold handwriting">Gửi Suzy của anh</h2>
+                <p class="text-[10px] uppercase tracking-widest mt-1 opacity-80">Lời xin lỗi từ nơi xa</p>
             </div>
-            
-            <p class="absolute -bottom-10 text-rose-600 font-bold text-sm md:text-base tracking-widest uppercase">
-                Chạm để mở thư
-            </p>
+
+            <!-- Slide to Unlock Interface -->
+            <div class="slider-container mt-auto mb-4">
+                <div class="slider-text uppercase text-[10px]">Trượt để mở thư</div>
+                <div id="slider-handle" class="slider-handle">
+                    <i data-lucide="chevron-right"></i>
+                </div>
+            </div>
         </div>
-        <div class="mt-14 text-center">
-            <h2 class="text-2xl md:text-3xl font-bold text-rose-700 handwriting">Gửi Suzy bé bỏng</h2>
-            <p class="text-xs text-rose-400 mt-1 uppercase tracking-tighter">Từ người đang rất hối lỗi - Huy Hoàng</p>
-        </div>
+        <p class="text-rose-600 mt-6 font-semibold animate-pulse italic text-sm md:text-base">Mở thư ra nhé, em đừng giận anh nữa...</p>
     </div>
 
-    <!-- MAIN LETTER CONTENT (Ẩn cho đến khi click) -->
-    <div id="main-card" class="container mx-auto px-4 z-10 relative hidden opacity-0 transition-opacity duration-1000">
+    <!-- MAIN LETTER CONTENT -->
+    <div id="main-card" class="container mx-auto px-4 z-10 relative hidden-card w-full">
         <div class="max-w-xl mx-auto letter-bg rounded-2xl shadow-2xl overflow-hidden border border-rose-100 w-full">
             
-            <!-- Header -->
             <div class="bg-rose-50 h-24 md:h-32 flex items-center justify-center relative border-b border-rose-100">
                 <div class="absolute -bottom-8 bg-white p-2 rounded-full shadow-md">
                     <div class="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center text-white">
-                        <i data-lucide="pen-tool" class="w-8 h-8"></i>
+                        <i data-lucide="map-pin" class="w-8 h-8"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Tâm thư -->
             <div class="pt-12 pb-8 px-6 md:pt-14 md:pb-10 md:px-10 text-center">
-                <h1 class="text-2xl md:text-3xl text-gray-800 font-bold mb-1 handwriting">Suzy thương yêu,</h1>
-                <p class="text-rose-400 font-semibold mb-6 text-xs uppercase tracking-widest">Huy Hoàng's Apology</p>
+                <h1 class="text-2xl md:text-3xl text-gray-800 font-bold mb-1 handwriting">Suzy thương yêu của anh,</h1>
+                <p class="text-rose-400 font-semibold mb-6 text-xs uppercase tracking-widest">Long Distance Apology</p>
 
                 <div class="space-y-4 text-gray-700 text-left leading-relaxed text-sm md:text-base italic">
                     <p>
-                        Anh viết những dòng này khi trong lòng vẫn còn cảm giác nặng nề và hối hận vô cùng. Chuyện tối qua anh về trễ... anh biết dù có đưa ra bao nhiêu lý do thì việc để em phải chờ đợi, lo lắng và một mình trong đêm là điều không thể bào chữa được.
+                        Anh viết những dòng này với tất cả sự hối lỗi dành cho em. Anh biết khoảng cách giữa chúng mình vốn đã chẳng dễ dàng gì, vậy mà tối qua anh lại còn vô tâm để em phải thức khuya chờ đợi chỉ vì anh về trễ.
                     </p>
                     <p>
-                        Lúc đứng trước cửa và nhìn thấy gương mặt em, anh hiểu rằng mình đã vô tâm đến nhường nào. Anh đã không trân trọng thời gian mà chúng ta có, và tệ hơn là đã để những bộn bề bên ngoài làm tổn thương người quan trọng nhất đối với anh.
+                        Anh biết sáng sớm nay em đã phải thức dậy để đi làm, và việc thiếu ngủ sẽ khiến em mệt mỏi suốt cả ngày hôm nay. Nghĩ đến cảnh em vừa buồn ngủ, vừa lo lắng nhìn vào màn hình điện thoại chờ tin nhắn của anh, anh thực sự thấy mình tệ quá.
                     </p>
                     <p>
-                        Anh xin lỗi vì đã khiến em buồn, xin lỗi vì đã làm hỏng buổi tối của chúng mình. Anh trân trọng từng phút giây em ở bên cạnh, và từ nay về sau, anh hứa sẽ sắp xếp mọi thứ tốt hơn để không bao giờ để em phải cô đơn chờ đợi như vậy nữa.
+                        Yêu xa, thời gian dành cho nhau qua màn hình là thứ quý giá nhất, vậy mà anh lại lãng phí nó và còn làm em phải tổn thương. Anh xin lỗi vì đã không trân trọng giấc ngủ và sức khỏe của em, xin lỗi vì đã khiến em buồn lòng ở nơi phương xa ấy.
+                    </p>
+                    <p>
+                        Lần sau anh hứa sẽ về sớm hơn, hoặc ít nhất là không bao giờ để em phải thức đợi trong vô vọng như thế nữa. Anh thương em rất nhiều và chỉ mong em giữ gìn sức khỏe thật tốt.
                     </p>
                     <p class="font-bold text-center text-rose-600 not-italic border-t border-rose-100 pt-4">
-                        "Em là ưu tiên duy nhất, xin hãy tha thứ cho anh nhé?"
+                        "Anh sai rồi, em đừng giận anh nữa nhé?"
                     </p>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="mt-8 flex flex-col gap-3 justify-center items-center">
                     <button id="forgiveBtn" class="w-full sm:w-auto px-10 py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base touch-manipulation">
                         <i data-lucide="heart" class="w-5 h-5"></i>
@@ -157,7 +196,7 @@
                 </div>
             </div>
             
-            <audio id="bgMusic" loop>
+            <audio id="bgMusic" loop preload="auto">
                 <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=piano-moment-111584.mp3" type="audio/mpeg">
             </audio>
 
@@ -173,8 +212,8 @@
             <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500">
                 <i data-lucide="party-popper" class="w-10 h-10"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-800 mb-2 handwriting">Hạnh phúc quá!</h3>
-            <p class="text-gray-600 text-sm">Cảm ơn em vì đã rộng lượng với anh. Anh đang chuẩn bị món quà nhỏ chuộc lỗi đây, chờ anh nhé! ❤️</p>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2 handwriting uppercase">Cảm ơn em yêu!</h3>
+            <p class="text-gray-600 text-sm">Anh hứa sẽ không để em phải thức khuya chờ đợi nữa. Anh yêu em rất nhiều! ❤️</p>
             <button onclick="closeModal()" class="mt-6 w-full py-3 bg-rose-500 text-white font-bold rounded-xl transition touch-manipulation">
                 Yêu anh nhất!
             </button>
@@ -186,25 +225,72 @@
     <script>
         lucide.createIcons();
 
-        // --- Logic Mở Thư ---
-        const envelope = document.getElementById('envelope');
+        // --- Slide to Open Logic ---
+        const handle = document.getElementById('slider-handle');
+        const container = handle.parentElement;
+        const envelopeView = document.getElementById('envelope-view');
         const mainCard = document.getElementById('main-card');
+        
+        let isDragging = false;
+        let startX = 0;
+        const maxSlide = container.offsetWidth - handle.offsetWidth - 10;
 
-        envelope.addEventListener('click', () => {
-            envelope.classList.add('fade-out');
+        function startDrag(e) {
+            isDragging = true;
+            startX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX;
+            handle.style.transition = 'none';
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            const currentX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
+            let deltaX = currentX - startX;
+            
+            if (deltaX < 0) deltaX = 0;
+            if (deltaX > maxSlide) deltaX = maxSlide;
+            
+            handle.style.transform = `translateX(${deltaX}px)`;
+            
+            // Check for success
+            if (deltaX >= maxSlide * 0.95) {
+                openLetter();
+            }
+        }
+
+        function stopDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            if (parseInt(handle.style.transform.replace('translateX(', '')) < maxSlide * 0.95) {
+                handle.style.transition = 'transform 0.3s ease';
+                handle.style.transform = 'translateX(0px)';
+            }
+        }
+
+        function openLetter() {
+            isDragging = false;
+            envelopeView.style.transform = 'scale(1.2)';
+            envelopeView.style.opacity = '0';
+            
             setTimeout(() => {
-                envelope.classList.add('hidden');
-                mainCard.classList.remove('hidden');
-                void mainCard.offsetWidth; 
-                mainCard.classList.remove('opacity-0');
+                envelopeView.classList.add('hidden');
+                mainCard.classList.remove('hidden-card');
                 mainCard.classList.add('fade-in');
-            }, 500);
-        });
+                mainCard.style.display = 'block';
+                mainCard.style.opacity = '1';
+            }, 600);
+        }
 
-        // --- Hiệu ứng Trái tim ---
+        // Event Listeners
+        handle.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', stopDrag);
+        
+        handle.addEventListener('touchstart', startDrag);
+        window.addEventListener('touchmove', onDrag);
+        window.addEventListener('touchend', stopDrag);
+
+        // --- Heart Effects ---
         const heartsContainer = document.getElementById('hearts-container');
-        const colors = ['#fed7e2', '#fbb6ce', '#f687b3', '#fff5f5'];
-
         function createHeart() {
             const heart = document.createElement('div');
             heart.classList.add('heart');
@@ -212,89 +298,62 @@
             heart.style.left = Math.random() * 100 + 'vw';
             heart.style.animationDuration = Math.random() * 2 + 5 + 's'; 
             heart.style.fontSize = Math.random() * 15 + 10 + 'px';
-            heart.style.color = colors[Math.floor(Math.random() * colors.length)];
             heartsContainer.appendChild(heart);
             setTimeout(() => { heart.remove(); }, 6000);
         }
-        setInterval(createHeart, 400);
+        setInterval(createHeart, 500);
 
-        // --- Logic Nhạc ---
+        // --- Music ---
         const musicBtn = document.getElementById('musicBtn');
         const musicText = document.getElementById('musicText');
         const audio = document.getElementById('bgMusic');
         let isPlaying = false;
-
         musicBtn.addEventListener('click', () => {
-            if (isPlaying) {
-                audio.pause();
-                musicText.innerText = "Bật chút nhạc piano nhé?";
-            } else {
-                audio.volume = 0.4;
-                audio.play().catch(e => console.log("Cần tương tác để phát nhạc"));
-                musicText.innerText = "Tắt nhạc";
-            }
+            if (isPlaying) { audio.pause(); musicText.innerText = "Bật chút nhạc piano nhé?"; }
+            else { audio.volume = 0.4; audio.play(); musicText.innerText = "Tắt nhạc"; }
             isPlaying = !isPlaying;
         });
 
-        // --- Pháo giấy & Tha thứ ---
+        // --- Success Modal & Confetti ---
         const forgiveBtn = document.getElementById('forgiveBtn');
         const modal = document.getElementById('successModal');
-        const modalContent = modal.querySelector('div:nth-child(2)');
         const canvas = document.getElementById('confetti-canvas');
         const ctx = canvas.getContext('2d');
-
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         let confetti = [];
 
+        forgiveBtn.addEventListener('click', () => {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            initConfetti();
+            renderConfetti();
+        });
+
         initConfetti = () => {
             for (let i = 0; i < 150; i++) {
                 confetti.push({
-                    color: { front: '#f43f5e', back: '#be123c' },
-                    dimensions: { x: Math.random() * 10 + 5, y: Math.random() * 10 + 5 },
                     position: { x: window.innerWidth/2, y: window.innerHeight/2 },
-                    rotation: Math.random() * 2 * Math.PI,
-                    scale: { x: 1, y: 1 },
-                    velocity: { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 },
+                    velocity: { x: (Math.random() - 0.5) * 20, y: (Math.random() - 0.5) * 20 },
+                    size: Math.random() * 10 + 5,
+                    color: '#f43f5e'
                 });
             }
         };
 
         renderConfetti = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            confetti.forEach((confetto, index) => {
-                confetto.position.x += confetto.velocity.x;
-                confetto.position.y += confetto.velocity.y;
-                confetto.velocity.y += 0.5; // trọng lực
-                confetto.rotation += 0.1;
-                
-                ctx.save();
-                ctx.translate(confetto.position.x, confetto.position.y);
-                ctx.rotate(confetto.rotation);
-                ctx.fillStyle = confetto.color.front;
-                ctx.fillRect(-confetto.dimensions.x/2, -confetto.dimensions.y/2, confetto.dimensions.x, confetto.dimensions.y);
-                ctx.restore();
-
-                if (confetto.position.y > canvas.height) confetti.splice(index, 1);
+            confetti.forEach((c, i) => {
+                c.position.x += c.velocity.x;
+                c.position.y += c.velocity.y;
+                c.velocity.y += 0.5;
+                ctx.fillStyle = c.color;
+                ctx.fillRect(c.position.x, c.position.y, c.size, c.size);
+                if (c.position.y > canvas.height) confetti.splice(i, 1);
             });
-            if (confetti.length > 0) window.requestAnimationFrame(renderConfetti);
+            if (confetti.length > 0) requestAnimationFrame(renderConfetti);
         };
 
-        forgiveBtn.addEventListener('click', () => {
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modalContent.classList.remove('scale-90');
-            modalContent.classList.add('scale-100');
-            initConfetti();
-            renderConfetti();
-            forgiveBtn.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i> Đã được tha thứ`;
-            lucide.createIcons();
-        });
-
-        window.closeModal = function() {
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-90');
-        }
+        window.closeModal = () => modal.classList.add('opacity-0', 'pointer-events-none');
     </script>
 </body>
 </html>
