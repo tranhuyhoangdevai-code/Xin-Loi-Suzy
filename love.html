@@ -2,13 +2,13 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cây Tình Yêu Của Suzy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: radial-gradient(circle at center, #fff5f5 0%, #fed7e2 100%); font-family: 'Nunito', sans-serif; }
+        body { margin: 0; overflow: hidden; background: radial-gradient(circle at center, #fff5f5 0%, #fed7e2 100%); font-family: 'Nunito', sans-serif; touch-action: none; }
         #canvas-container { width: 100vw; height: 100vh; cursor: grab; }
         #canvas-container:active { cursor: grabbing; }
         .ui-overlay { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; z-index: 10; width: 90%; }
@@ -18,7 +18,7 @@
         #photo-card { max-width: 90%; width: 400px; background: white; padding: 12px; border-radius: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #photo-overlay.active #photo-card { transform: scale(1); }
         #photo-img { width: 100%; height: auto; max-height: 60vh; border-radius: 8px; object-fit: cover; display: block; }
-        .back-btn { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 25px; border-radius: 50px; text-decoration: none; color: #f43f5e; font-weight: bold; z-index: 10; border: 1px solid #fecaca; }
+        .back-btn { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 25px; border-radius: 50px; text-decoration: none; color: #f43f5e; font-weight: bold; z-index: 10; border: 1px solid #fecaca; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #f43f5e; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: none; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -46,7 +46,6 @@
     </div>
 
     <script>
-        // Nếu bạn chưa có file jpg1.jpg... mã sẽ dùng ảnh mẫu từ internet
         const photos = [
             { url: "jpg1.jpg", backup: "https://picsum.photos/seed/love1/400/600", desc: "Mãi yêu em, Suzy của anh" },
             { url: "jpg2.jpg", backup: "https://picsum.photos/seed/love2/400/600", desc: "Khoảnh khắc mình bên nhau" },
@@ -62,6 +61,7 @@
 
         let scene, camera, renderer, treeGroup, leaves = [];
         let isDragging = false, previousMouseX = 0;
+        let moveDistance = 0; // Để phân biệt giữa xoay và click
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
@@ -72,7 +72,7 @@
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
             scene.add(new THREE.AmbientLight(0xffffff, 1.2));
@@ -82,7 +82,6 @@
 
             treeGroup = new THREE.Group();
             
-            // Thân cây
             const trunk = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.3, 0.9, 12, 12),
                 new THREE.MeshLambertMaterial({ color: 0x4d3423 })
@@ -90,20 +89,18 @@
             trunk.position.y = 2;
             treeGroup.add(trunk);
 
-            // Tạo Shape Trái tim cho lá
-            const x=0, y=0;
             const heart = new THREE.Shape();
-            heart.moveTo(x+5, y+5);
-            heart.bezierCurveTo(x+5, y+5, x+4, y, x, y);
-            heart.bezierCurveTo(x-6, y, x-6, y+7, x-6, y+7);
-            heart.bezierCurveTo(x-6, y+11, x-3, y+15, x+5, y+19);
-            heart.bezierCurveTo(x+12, y+15, x+16, y+11, x+16, y+7);
-            heart.bezierCurveTo(x+16, y+7, x+16, y, x+10, y);
-            heart.bezierCurveTo(x+7, y, x+5, y+5, x+5, y+5);
+            heart.moveTo(5, 5);
+            heart.bezierCurveTo(5, 5, 4, 0, 0, 0);
+            heart.bezierCurveTo(-6, 0, -6, 7, -6, 7);
+            heart.bezierCurveTo(-6, 11, -3, 15, 5, 19);
+            heart.bezierCurveTo(12, 15, 16, 11, 16, 7);
+            heart.bezierCurveTo(16, 7, 16, 0, 10, 0);
+            heart.bezierCurveTo(7, 0, 5, 5, 5, 5);
             const leafGeo = new THREE.ShapeGeometry(heart);
 
             const colors = [0xf43f5e, 0xfb7185, 0xff85a1, 0xffcad4];
-            for (let i = 0; i < 3000; i++) {
+            for (let i = 0; i < 2000; i++) {
                 const mat = new THREE.MeshLambertMaterial({ 
                     color: colors[Math.floor(Math.random() * colors.length)], 
                     side: THREE.DoubleSide 
@@ -111,8 +108,8 @@
                 const leaf = new THREE.Mesh(leafGeo, mat);
                 
                 const r = 3 + Math.random() * 6;
-                const phi = Math.acos(-1 + (2 * i) / 3000);
-                const theta = Math.sqrt(3000 * Math.PI) * phi;
+                const phi = Math.acos(-1 + (2 * i) / 2000);
+                const theta = Math.sqrt(2000 * Math.PI) * phi;
 
                 leaf.position.x = r * Math.sin(phi) * Math.cos(theta);
                 leaf.position.y = 9 + r * Math.cos(phi) * 0.8;
@@ -120,7 +117,6 @@
                 leaf.rotation.set(Math.random()*3, Math.random()*3, Math.random()*3);
                 leaf.scale.set(0.015, 0.015, 0.015);
                 
-                leaf.userData.id = i; // Gắn ID để nhận diện click
                 treeGroup.add(leaf);
                 leaves.push(leaf);
             }
@@ -135,20 +131,32 @@
             renderer.render(scene, camera);
         }
 
-        // Xử lý sự kiện
-        window.addEventListener('mousedown', (e) => { isDragging = true; previousMouseX = e.clientX; });
-        window.addEventListener('mouseup', () => isDragging = false);
-        window.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                treeGroup.rotation.y += (e.clientX - previousMouseX) * 0.01;
-                previousMouseX = e.clientX;
-            }
-        });
+        // Xử lý chung cho cả Chuột và Cảm ứng
+        function handleStart(x) {
+            isDragging = true;
+            previousMouseX = x;
+            moveDistance = 0;
+        }
 
-        window.addEventListener('click', (e) => {
-            if (isDragging) return;
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        function handleMove(x) {
+            if (!isDragging) return;
+            const deltaX = x - previousMouseX;
+            treeGroup.rotation.y += deltaX * 0.008;
+            previousMouseX = x;
+            moveDistance += Math.abs(deltaX);
+        }
+
+        function handleEnd(x, y, isClick) {
+            isDragging = false;
+            // Nếu khoảng cách di chuyển nhỏ (coi như là click/tap)
+            if (isClick && moveDistance < 10) {
+                checkIntersection(x, y);
+            }
+        }
+
+        function checkIntersection(clientX, clientY) {
+            mouse.x = (clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(clientY / window.innerHeight) * 2 + 1;
             
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(leaves);
@@ -157,6 +165,26 @@
                 const index = Math.floor(Math.random() * photos.length);
                 showPhoto(index);
             }
+        }
+
+        // Chuột
+        window.addEventListener('mousedown', (e) => handleStart(e.clientX));
+        window.addEventListener('mousemove', (e) => handleMove(e.clientX));
+        window.addEventListener('mouseup', (e) => handleEnd(e.clientX, e.clientY, true));
+
+        // Cảm ứng (Mobile)
+        window.addEventListener('touchstart', (e) => {
+            handleStart(e.touches[0].clientX);
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            handleMove(e.touches[0].clientX);
+            e.preventDefault(); // Ngăn cuộn trang khi xoay cây
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            const touch = e.changedTouches[0];
+            handleEnd(touch.clientX, touch.clientY, true);
         });
 
         const overlay = document.getElementById('photo-overlay');
@@ -169,7 +197,6 @@
             spinner.style.display = "block";
             img.style.display = "none";
             
-            // Thử tải ảnh chính, nếu lỗi dùng ảnh backup
             img.src = data.url;
             img.onerror = () => { img.src = data.backup; };
             img.onload = () => {
