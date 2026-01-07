@@ -6,6 +6,7 @@
     <title>Cây Tình Yêu Của Suzy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background: radial-gradient(circle at center, #fff5f5 0%, #fed7e2 100%); font-family: 'Nunito', sans-serif; touch-action: none; }
@@ -13,12 +14,34 @@
         #canvas-container:active { cursor: grabbing; }
         .ui-overlay { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; z-index: 10; width: 90%; }
         .handwriting { font-family: 'Dancing Script', cursive; }
-        #photo-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; backdrop-filter: blur(5px); }
-        #photo-overlay.active { opacity: 1; pointer-events: auto; }
-        #photo-card { max-width: 90%; width: 400px; background: white; padding: 12px; border-radius: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        /* Hiệu ứng ảnh kỷ niệm */
+        #photo-overlay { 
+            position: fixed; inset: 0; 
+            background: rgba(0, 0, 0, 0); 
+            display: flex; align-items: center; justify-content: center; 
+            z-index: 100; opacity: 0; pointer-events: none; 
+            transition: background 0.5s ease, opacity 0.5s ease;
+            backdrop-filter: blur(0px);
+        }
+        #photo-overlay.active { 
+            opacity: 1; pointer-events: auto; 
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+        }
+        
+        #photo-card { 
+            max-width: 90%; width: 400px; background: white; 
+            padding: 12px; border-radius: 15px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+            transform: scale(0); 
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
         #photo-overlay.active #photo-card { transform: scale(1); }
+        
         #photo-img { width: 100%; height: auto; max-height: 60vh; border-radius: 8px; object-fit: cover; display: block; }
         .back-btn { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 25px; border-radius: 50px; text-decoration: none; color: #f43f5e; font-weight: bold; z-index: 10; border: 1px solid #fecaca; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
         .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #f43f5e; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: none; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -27,7 +50,7 @@
 
     <div class="ui-overlay">
         <h1 class="text-3xl text-rose-500 handwriting font-bold">Cây Tình Yêu của Chúng Mình</h1>
-        <p class="text-gray-500 text-sm mt-2">Xoay cây và chạm vào lá để xem ảnh nhé!</p>
+        <p class="text-gray-500 text-sm mt-2">Chạm vào lá để xem điều bất ngờ nhé!</p>
     </div>
 
     <a href="index.html" class="back-btn">← Quay lại</a>
@@ -35,13 +58,13 @@
     <div id="canvas-container"></div>
 
     <div id="photo-overlay">
-        <div class="flex flex-col items-center">
+        <div class="flex flex-col items-center w-full">
             <div id="photo-card" onclick="event.stopPropagation()">
                 <div id="spinner" class="loading-spinner"></div>
                 <img id="photo-img" src="" alt="Kỷ niệm">
-                <p id="photo-desc" class="mt-4 text-center text-rose-600 font-semibold italic text-xl handwriting"></p>
+                <p id="photo-desc" class="mt-4 text-center text-rose-600 font-semibold italic text-xl handwriting px-2"></p>
             </div>
-            <p class="text-white mt-4 opacity-70 text-sm">Chạm bất kỳ đâu để đóng</p>
+            <p class="text-white mt-6 opacity-70 text-sm animate-pulse">Chạm để đóng</p>
         </div>
     </div>
 
@@ -60,15 +83,14 @@
         ];
 
         let scene, camera, renderer, treeGroup, leaves = [];
-        let isDragging = false, previousMouseX = 0;
-        let moveDistance = 0; // Để phân biệt giữa xoay và click
+        let isDragging = false, previousX = 0, moveDistance = 0;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
         function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 8, 18);
+            camera.position.set(0, 8, 20);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -82,6 +104,7 @@
 
             treeGroup = new THREE.Group();
             
+            // Thân cây
             const trunk = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.3, 0.9, 12, 12),
                 new THREE.MeshLambertMaterial({ color: 0x4d3423 })
@@ -89,6 +112,7 @@
             trunk.position.y = 2;
             treeGroup.add(trunk);
 
+            // Tạo hình trái tim cho lá
             const heart = new THREE.Shape();
             heart.moveTo(5, 5);
             heart.bezierCurveTo(5, 5, 4, 0, 0, 0);
@@ -100,7 +124,7 @@
             const leafGeo = new THREE.ShapeGeometry(heart);
 
             const colors = [0xf43f5e, 0xfb7185, 0xff85a1, 0xffcad4];
-            for (let i = 0; i < 2000; i++) {
+            for (let i = 0; i < 1500; i++) {
                 const mat = new THREE.MeshLambertMaterial({ 
                     color: colors[Math.floor(Math.random() * colors.length)], 
                     side: THREE.DoubleSide 
@@ -108,12 +132,17 @@
                 const leaf = new THREE.Mesh(leafGeo, mat);
                 
                 const r = 3 + Math.random() * 6;
-                const phi = Math.acos(-1 + (2 * i) / 2000);
-                const theta = Math.sqrt(2000 * Math.PI) * phi;
+                const phi = Math.acos(-1 + (2 * i) / 1500);
+                const theta = Math.sqrt(1500 * Math.PI) * phi;
 
                 leaf.position.x = r * Math.sin(phi) * Math.cos(theta);
                 leaf.position.y = 9 + r * Math.cos(phi) * 0.8;
                 leaf.position.z = r * Math.sin(phi) * Math.sin(theta);
+                
+                // Lưu vị trí gốc để hiệu ứng
+                leaf.userData.originalPos = leaf.position.clone();
+                leaf.userData.originalScale = 0.015;
+
                 leaf.rotation.set(Math.random()*3, Math.random()*3, Math.random()*3);
                 leaf.scale.set(0.015, 0.015, 0.015);
                 
@@ -125,30 +154,29 @@
             animate();
         }
 
-        function animate() {
+        function animate(time) {
             requestAnimationFrame(animate);
+            TWEEN.update(time);
             if (!isDragging) treeGroup.rotation.y += 0.002;
             renderer.render(scene, camera);
         }
 
-        // Xử lý chung cho cả Chuột và Cảm ứng
         function handleStart(x) {
             isDragging = true;
-            previousMouseX = x;
+            previousX = x;
             moveDistance = 0;
         }
 
         function handleMove(x) {
             if (!isDragging) return;
-            const deltaX = x - previousMouseX;
+            const deltaX = x - previousX;
             treeGroup.rotation.y += deltaX * 0.008;
-            previousMouseX = x;
+            previousX = x;
             moveDistance += Math.abs(deltaX);
         }
 
         function handleEnd(x, y, isClick) {
             isDragging = false;
-            // Nếu khoảng cách di chuyển nhỏ (coi như là click/tap)
             if (isClick && moveDistance < 10) {
                 checkIntersection(x, y);
             }
@@ -162,37 +190,47 @@
             const intersects = raycaster.intersectObjects(leaves);
             
             if (intersects.length > 0) {
-                const index = Math.floor(Math.random() * photos.length);
-                showPhoto(index);
+                const leaf = intersects[0].object;
+                animateLeafSelection(leaf);
             }
         }
 
-        // Chuột
-        window.addEventListener('mousedown', (e) => handleStart(e.clientX));
-        window.addEventListener('mousemove', (e) => handleMove(e.clientX));
-        window.addEventListener('mouseup', (e) => handleEnd(e.clientX, e.clientY, true));
+        function animateLeafSelection(leaf) {
+            // Chặn tương tác khi đang diễn ra hiệu ứng
+            isDragging = false;
+            
+            // Tính toán vị trí trước camera
+            const targetPos = new THREE.Vector3(0, 0, 10); 
+            targetPos.applyMatrix4(camera.matrixWorld);
 
-        // Cảm ứng (Mobile)
-        window.addEventListener('touchstart', (e) => {
-            handleStart(e.touches[0].clientX);
-        }, { passive: false });
+            // 1. Phóng to và bay về phía camera
+            new TWEEN.Tween(leaf.position)
+                .to({ x: 0, y: 8, z: 12 }, 600)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .start();
 
-        window.addEventListener('touchmove', (e) => {
-            handleMove(e.touches[0].clientX);
-            e.preventDefault(); // Ngăn cuộn trang khi xoay cây
-        }, { passive: false });
-
-        window.addEventListener('touchend', (e) => {
-            const touch = e.changedTouches[0];
-            handleEnd(touch.clientX, touch.clientY, true);
-        });
+            new TWEEN.Tween(leaf.scale)
+                .to({ x: 0.1, y: 0.1, z: 0.1 }, 600)
+                .easing(TWEEN.Easing.Back.Out)
+                .onComplete(() => {
+                    const index = Math.floor(Math.random() * photos.length);
+                    showPhoto(index, leaf);
+                })
+                .start();
+                
+            new TWEEN.Tween(leaf.rotation)
+                .to({ x: 0, y: Math.PI * 2, z: 0 }, 600)
+                .start();
+        }
 
         const overlay = document.getElementById('photo-overlay');
         const img = document.getElementById('photo-img');
         const desc = document.getElementById('photo-desc');
         const spinner = document.getElementById('spinner');
+        let currentSelectedLeaf = null;
 
-        function showPhoto(idx) {
+        function showPhoto(idx, leaf) {
+            currentSelectedLeaf = leaf;
             const data = photos[idx];
             spinner.style.display = "block";
             img.style.display = "none";
@@ -208,7 +246,45 @@
             overlay.classList.add('active');
         }
 
-        overlay.addEventListener('click', () => overlay.classList.remove('active'));
+        overlay.addEventListener('click', () => {
+            overlay.classList.remove('active');
+            
+            if (currentSelectedLeaf) {
+                // Đưa lá về vị trí cũ
+                new TWEEN.Tween(currentSelectedLeaf.position)
+                    .to({ 
+                        x: currentSelectedLeaf.userData.originalPos.x, 
+                        y: currentSelectedLeaf.userData.originalPos.y, 
+                        z: currentSelectedLeaf.userData.originalPos.z 
+                    }, 500)
+                    .easing(TWEEN.Easing.Quadratic.In)
+                    .start();
+
+                new TWEEN.Tween(currentSelectedLeaf.scale)
+                    .to({ x: 0.015, y: 0.015, z: 0.015 }, 500)
+                    .start();
+            }
+        });
+
+        // Event Listeners
+        window.addEventListener('mousedown', (e) => handleStart(e.clientX));
+        window.addEventListener('mousemove', (e) => handleMove(e.clientX));
+        window.addEventListener('mouseup', (e) => handleEnd(e.clientX, e.clientY, true));
+
+        window.addEventListener('touchstart', (e) => {
+            handleStart(e.touches[0].clientX);
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            handleMove(e.touches[0].clientX);
+            if (isDragging) e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            const touch = e.changedTouches[0];
+            handleEnd(touch.clientX, touch.clientY, true);
+        });
+
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
