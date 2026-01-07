@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Suzy - Lời xin lỗi từ Huy Hoàng</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            overflow-x: hidden;
+        }
+        
+        .handwriting {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        /* Floating Hearts Animation */
+        .heart {
+            position: absolute;
+            color: #ff9999;
+            opacity: 0;
+            animation: float 6s ease-in infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0.5);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* Fade In Animation for Letter */
+        .fade-in {
+            animation: fadeIn 1.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Envelope Open Animation */
+        .fade-out {
+            animation: fadeOut 0.5s ease-in forwards;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: scale(1.1); pointer-events: none; }
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            touch-action: none;
+        }
+        
+        /* Envelope Bounce */
+        .bounce-slight {
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-5%); }
+            50% { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-pink-50 min-h-[100dvh] flex items-center justify-center relative overflow-hidden">
+
+    <!-- Background Elements -->
+    <div id="hearts-container" class="absolute inset-0 overflow-hidden pointer-events-none z-0"></div>
+
+    <!-- ENVELOPE VIEW (Initial State) -->
+    <div id="envelope" class="z-20 cursor-pointer group transition-transform duration-300 hover:scale-105 active:scale-95 text-center px-4">
+        <div class="relative w-64 h-48 md:w-80 md:h-56 bg-gradient-to-br from-pink-400 to-rose-400 rounded-lg shadow-2xl flex items-center justify-center mx-auto bounce-slight border-4 border-white">
+            <!-- Flap of envelope visual -->
+            <div class="absolute top-0 left-0 w-full h-full overflow-hidden rounded-lg">
+                <div class="absolute -top-[50%] left-[50%] -translate-x-1/2 w-[120%] h-full bg-pink-300 transform rotate-45 border-b-4 border-white opacity-50"></div>
+            </div>
+            
+            <!-- Heart Seal -->
+            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg z-10 text-pink-500 group-hover:text-pink-600 transition-colors">
+                <i data-lucide="heart" class="w-8 h-8 fill-current"></i>
+            </div>
+            
+            <p class="absolute -bottom-12 text-gray-500 font-semibold text-sm md:text-base animate-pulse">
+                Bấm để mở thư
+            </p>
+        </div>
+        <div class="mt-16 text-center">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-700 handwriting">Gửi Suzy</h2>
+            <p class="text-sm text-gray-400 mt-1">Từ Huy Hoàng</p>
+        </div>
+    </div>
+
+    <!-- MAIN LETTER CONTENT (Initially Hidden) -->
+    <div id="main-card" class="container mx-auto px-4 z-10 relative hidden opacity-0 transition-opacity duration-1000">
+        <div class="max-w-lg mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-pink-100 transform transition-all duration-500 hover:shadow-pink-200/50 w-full">
+            
+            <!-- Header Image / Icon -->
+            <div class="bg-pink-100 h-28 md:h-32 flex items-center justify-center relative">
+                <div class="absolute -bottom-10 bg-white p-2 md:p-3 rounded-full shadow-lg">
+                    <div class="w-16 h-16 md:w-20 md:h-20 bg-pink-500 rounded-full flex items-center justify-center text-white">
+                        <i data-lucide="heart-handshake" class="w-8 h-8 md:w-10 md:h-10"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="pt-12 pb-6 px-5 md:pt-14 md:pb-8 md:px-8 text-center">
+                <h1 class="text-2xl md:text-3xl text-gray-800 font-bold mb-1 md:mb-2">Gửi Suzy</h1>
+                <p class="text-pink-500 font-semibold mb-4 md:mb-6 text-sm md:text-base">Từ Huy Hoàng</p>
+
+                <div class="space-y-3 md:space-y-4 text-gray-600 text-left bg-gray-50 p-4 md:p-6 rounded-xl border border-gray-100 relative text-sm md:text-base">
+                    <!-- Decorative quotes -->
+                    <i data-lucide="quote" class="absolute top-2 left-2 w-5 h-5 md:w-6 md:h-6 text-pink-200 opacity-50 transform rotate-180"></i>
+                    
+                    <p class="leading-relaxed">
+                        Suzy à,
+                    </p>
+                    <p class="leading-relaxed">
+                        Anh biết dạo này anh đã làm em buồn và thất vọng. Anh thực sự xin lỗi vì những hành động thiếu suy nghĩ của mình.
+                    </p>
+                    <p class="leading-relaxed">
+                        Mấy ngày qua không được nói chuyện vui vẻ với em, anh thấy trống trải lắm. Anh đã suy nghĩ rất nhiều và anh hứa sẽ thay đổi, sẽ lắng nghe em nhiều hơn.
+                    </p>
+                    <p class="leading-relaxed font-semibold text-gray-800">
+                        Đừng giận anh nữa nhé?
+                    </p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 md:mt-8 flex flex-col gap-3 justify-center items-center">
+                    <button id="forgiveBtn" class="w-full sm:w-auto px-6 py-3 md:px-8 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base touch-manipulation">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        Tha lỗi cho Huy Hoàng
+                    </button>
+                    
+                    <button id="musicBtn" class="text-sm text-gray-500 hover:text-pink-500 flex items-center gap-2 mt-2 transition-colors py-2 touch-manipulation">
+                        <i data-lucide="music" class="w-4 h-4"></i>
+                        <span id="musicText">Bật nhạc làm hòa</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hidden Audio Element -->
+            <audio id="bgMusic" loop>
+                <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=piano-moment-111584.mp3" type="audio/mpeg">
+            </audio>
+
+        </div>
+        
+        <p class="text-center text-gray-400 text-xs mt-8 opacity-60">Made with ❤️ by Huy Hoàng</p>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-500 px-4">
+        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-sm mx-auto shadow-2xl transform scale-90 transition-transform duration-300 relative z-10 text-center">
+            <div class="w-14 h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-500">
+                <i data-lucide="smile" class="w-7 h-7 md:w-8 md:h-8"></i>
+            </div>
+            <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">Cảm ơn em! ❤️</h3>
+            <p class="text-gray-600 text-sm md:text-base">Anh hứa sẽ không để em buồn nữa đâu. Tối nay mình đi ăn nhé?</p>
+            <button onclick="closeModal()" class="mt-5 md:mt-6 px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition text-sm md:text-base touch-manipulation">
+                Đóng
+            </button>
+        </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        lucide.createIcons();
+
+        // --- Logic Mở Thư ---
+        const envelope = document.getElementById('envelope');
+        const mainCard = document.getElementById('main-card');
+
+        envelope.addEventListener('click', () => {
+            // Hiệu ứng biến mất cho phong bì
+            envelope.classList.add('fade-out');
+            
+            // Đợi một chút rồi hiện nội dung chính
+            setTimeout(() => {
+                envelope.classList.add('hidden');
+                mainCard.classList.remove('hidden');
+                
+                // Force reflow để animation chạy
+                void mainCard.offsetWidth; 
+                
+                mainCard.classList.remove('opacity-0');
+                mainCard.classList.add('fade-in');
+            }, 400); // 400ms phù hợp với animation fadeOut
+        });
+
+        // --- Logic Hiệu ứng Trái tim bay (Giữ nguyên) ---
+        const heartsContainer = document.getElementById('hearts-container');
+        const colors = ['#ffccd5', '#ffb3c1', '#ff8fa3', '#fff0f3'];
+
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤'; 
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 3 + 4 + 's'; 
+            heart.style.fontSize = Math.random() * 20 + 10 + 'px';
+            heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+            heartsContainer.appendChild(heart);
+            setTimeout(() => { heart.remove(); }, 7000);
+        }
+        setInterval(createHeart, 300);
+
+        // --- Logic Nhạc (Giữ nguyên) ---
+        const musicBtn = document.getElementById('musicBtn');
+        const musicText = document.getElementById('musicText');
+        const audio = document.getElementById('bgMusic');
+        let isPlaying = false;
+
+        musicBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                musicText.innerText = "Bật nhạc làm hòa";
+                musicBtn.classList.remove('text-pink-600');
+            } else {
+                audio.volume = 0.5;
+                audio.play().catch(e => console.log("Audio play failed"));
+                musicText.innerText = "Tắt nhạc";
+                musicBtn.classList.add('text-pink-600');
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // --- Logic Nút Tha Thứ & Pháo giấy (Giữ nguyên) ---
+        const forgiveBtn = document.getElementById('forgiveBtn');
+        const modal = document.getElementById('successModal');
+        const modalContent = modal.querySelector('div:nth-child(2)');
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let confetti = [];
+        const confettiCount = 300;
+        const gravity = 0.5;
+        const terminalVelocity = 5;
+        const drag = 0.075;
+        const colors_confetti = [
+          { front: 'red', back: 'darkred' }, { front: 'green', back: 'darkgreen' },
+          { front: 'blue', back: 'darkblue' }, { front: 'yellow', back: 'darkyellow' },
+          { front: 'orange', back: 'darkorange' }, { front: 'pink', back: 'darkpink' },
+          { front: 'purple', back: 'darkpurple' }, { front: 'turquoise', back: 'darkturquoise' },
+        ];
+
+        window.addEventListener('resize', function () {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        randomRange = (min, max) => Math.random() * (max - min) + min;
+
+        initConfetti = () => {
+            for (let i = 0; i < confettiCount; i++) {
+                confetti.push({
+                    color: colors_confetti[Math.floor(randomRange(0, colors_confetti.length))],
+                    dimensions: { x: randomRange(10, 20), y: randomRange(10, 30) },
+                    position: { x: randomRange(0, canvas.width), y: canvas.height - 1 },
+                    rotation: randomRange(0, 2 * Math.PI),
+                    scale: { x: 1, y: 1 },
+                    velocity: { x: randomRange(-25, 25), y: randomRange(0, -50) },
+                });
+            }
+        };
+
+        renderConfetti = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confetti.forEach((confetto, index) => {
+                let width = (confetto.dimensions.x * confetto.scale.x);
+                let height = (confetto.dimensions.y * confetto.scale.y);
+                ctx.translate(confetto.position.x, confetto.position.y);
+                ctx.rotate(confetto.rotation);
+                confetto.velocity.x -= confetto.velocity.x * drag;
+                confetto.velocity.y = Math.min(confetto.velocity.y + gravity, terminalVelocity);
+                confetto.velocity.x += Math.random() > 0.5 ? Math.random() : -Math.random();
+                confetto.position.x += confetto.velocity.x;
+                confetto.position.y += confetto.velocity.y;
+                if (confetto.position.y >= canvas.height) confetti.splice(index, 1);
+                if (confetto.position.x > canvas.width) confetto.position.x = 0;
+                if (confetto.position.x < 0) confetto.position.x = canvas.width;
+                confetto.scale.y = Math.cos(confetto.position.y * 0.1);
+                ctx.fillStyle = confetto.scale.y > 0 ? confetto.color.front : confetto.color.back;
+                ctx.fillRect(-width / 2, -height / 2, width, height);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+            });
+            if (confetti.length > 0) window.requestAnimationFrame(renderConfetti);
+        };
+
+        forgiveBtn.addEventListener('click', () => {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-90');
+            modalContent.classList.add('scale-100');
+            initConfetti();
+            renderConfetti();
+            forgiveBtn.innerHTML = `<i data-lucide="heart" class="w-5 h-5 fill-current"></i> Cảm ơn em!`;
+            lucide.createIcons();
+        });
+
+        window.closeModal = function() {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-90');
+        }
+    </script>
+</body>
+</html>
