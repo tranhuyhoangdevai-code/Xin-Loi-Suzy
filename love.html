@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cây Tình Yêu Của Suzy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #fff5f5 0%, #fed7e2 100%);
+            font-family: 'Nunito', sans-serif;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+        }
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+        .ui-overlay {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+            width: 90%;
+        }
+        .handwriting {
+            font-family: 'Dancing Script', cursive;
+        }
+        #photo-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+        #photo-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #photo-card {
+            max-width: 90%;
+            max-height: 85%;
+            background: white;
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        #photo-overlay.active #photo-card {
+            transform: scale(1);
+        }
+        #photo-img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+            display: block;
+            object-fit: contain;
+            margin: 0 auto;
+        }
+        .back-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: #f43f5e;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(244, 63, 94, 0.2);
+            z-index: 10;
+            transition: all 0.3s ease;
+            border: 1px solid #fecaca;
+        }
+        .back-btn:hover {
+            background: #f43f5e;
+            color: white;
+        }
+        .close-hint {
+            color: white;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ui-overlay">
+        <h1 class="text-3xl md:text-4xl text-rose-500 handwriting font-bold drop-shadow-sm">Cây Tình Yêu của Chúng Mình</h1>
+        <p class="text-gray-500 text-xs md:text-sm mt-2 italic">Tán lá rực rỡ với hàng ngàn trái tim kỷ niệm</p>
+    </div>
+
+    <a href="loi-xin-loi-suzy.html" class="back-btn">← Quay lại bức thư</a>
+
+    <div id="canvas-container"></div>
+
+    <!-- Modal hiển thị ảnh -->
+    <div id="photo-overlay">
+        <div class="flex flex-col items-center">
+            <div id="photo-card" onclick="event.stopPropagation()">
+                <img id="photo-img" src="" alt="Kỷ niệm của chúng ta">
+                <p id="photo-desc" class="mt-4 text-center text-rose-600 font-semibold italic text-lg handwriting"></p>
+            </div>
+            <p class="close-hint">Chạm ra ngoài để tiếp tục khám phá</p>
+        </div>
+    </div>
+
+    <script>
+        const photos = [
+            { url: "png1.png", desc: "Mãi yêu em, Suzy của anh" },
+            { url: "png2.png", desc: "Khoảnh khắc mình bên nhau" },
+            { url: "png3.png", desc: "Nụ cười em làm anh say đắm" },
+            { url: "png4.png", desc: "Cảm ơn em đã luôn ở bên" },
+            { url: "png5.png", desc: "Kỷ niệm khó quên của hai ta" },
+            { url: "png6.png", desc: "Dù xa nhau nhưng lòng vẫn gần" },
+            { url: "png7.png", desc: "Suzy là điều tuyệt vời nhất" },
+            { url: "png8.png", desc: "Hẹn gặp lại em sớm nhất nhé" },
+            { url: "png9.png", desc: "Anh sẽ không làm em buồn nữa" },
+            { url: "png10.png", desc: "Trái tim anh chỉ có mỗi em" }
+        ];
+
+        let scene, camera, renderer, treeGroup;
+        let isDragging = false;
+        let previousMouseX = 0;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let leaves = [];
+        let specialLeaves = [];
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 7, 18);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 0.8);
+            pointLight.position.set(10, 20, 10);
+            scene.add(pointLight);
+
+            treeGroup = new THREE.Group();
+            createTree();
+            scene.add(treeGroup);
+
+            animate();
+        }
+
+        function createTree() {
+            // Thân cây
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.8, 12, 16);
+            const trunkMat = new THREE.MeshLambertMaterial({ color: 0x3d2b1f });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 1;
+            treeGroup.add(trunk);
+
+            // Shape Trái tim
+            const x = 0, y = 0;
+            const heartShape = new THREE.Shape();
+            heartShape.moveTo( x + 5, y + 5 );
+            heartShape.bezierCurveTo( x + 5, y + 5, x + 4, y, x, y );
+            heartShape.bezierCurveTo( x - 6, y, x - 6, y + 7,x - 6, y + 7 );
+            heartShape.bezierCurveTo( x - 6, y + 11, x - 3, y + 15.4, x + 5, y + 19 );
+            heartShape.bezierCurveTo( x + 12, y + 15.4, x + 16, y + 11, x + 16, y + 7 );
+            heartShape.bezierCurveTo( x + 16, y + 7, x + 16, y, x + 10, y );
+            heartShape.bezierCurveTo( x + 7, y, x + 5, y + 5, x + 5, y + 5 );
+
+            const leafGeo = new THREE.ShapeGeometry(heartShape);
+            
+            // Tăng số lượng lá lên 4500 để cực kỳ dày đặc
+            const leafCount = 4500;
+            const colors = [0xf43f5e, 0xfb7185, 0xff85a1, 0xffb3c1, 0xffcad4];
+
+            for (let i = 0; i < leafCount; i++) {
+                const isSpecial = i < 10;
+                const material = new THREE.MeshLambertMaterial({ 
+                    color: isSpecial ? 0xf43f5e : colors[Math.floor(Math.random() * colors.length)],
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.95
+                });
+                
+                const leaf = new THREE.Mesh(leafGeo, material);
+                
+                // Thuật toán phân bổ lá dày đặc theo hình cầu tán cây
+                const r = 4.5 + Math.pow(Math.random(), 0.5) * 4.5; // Tập trung lá ở ngoài rìa nhiều hơn
+                const phi = Math.acos(-1 + (2 * i) / leafCount);
+                const theta = Math.sqrt(leafCount * Math.PI) * phi;
+
+                leaf.position.x = r * Math.sin(phi) * Math.cos(theta);
+                leaf.position.y = 7 + r * Math.cos(phi) * 0.9; // Hơi bẹt một chút cho tự nhiên
+                leaf.position.z = r * Math.sin(phi) * Math.sin(theta);
+
+                leaf.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                
+                // Kích thước ngẫu nhiên để tạo độ dày
+                const s = isSpecial ? 0.035 : (0.01 + Math.random() * 0.015);
+                leaf.scale.set(s, s, s);
+
+                if (isSpecial) {
+                    leaf.userData.photoIndex = i;
+                    specialLeaves.push(leaf);
+                }
+
+                treeGroup.add(leaf);
+                leaves.push(leaf);
+            }
+        }
+
+        function onMouseDown(e) { 
+            isDragging = true; 
+            previousMouseX = e.clientX || (e.touches ? e.touches[0].clientX : 0); 
+        }
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            const currentX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+            const deltaX = currentX - previousMouseX;
+            treeGroup.rotation.y += deltaX * 0.007;
+            previousMouseX = currentX;
+        }
+
+        function onMouseUp() { isDragging = false; }
+
+        function onClick(e) {
+            if (isDragging) return;
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(leaves);
+
+            if (intersects.length > 0) {
+                const clickedLeaf = intersects[0].object;
+                let photoIdx = clickedLeaf.userData.photoIndex;
+
+                if (photoIdx === undefined) {
+                    let minDist = Infinity;
+                    specialLeaves.forEach(sl => {
+                        const dist = clickedLeaf.position.distanceTo(sl.position);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            photoIdx = sl.userData.photoIndex;
+                        }
+                    });
+                }
+                showPhoto(photoIdx);
+            }
+        }
+
+        const overlay = document.getElementById('photo-overlay');
+        const photoImg = document.getElementById('photo-img');
+        const photoDesc = document.getElementById('photo-desc');
+
+        function showPhoto(index) {
+            const photo = photos[index];
+            photoImg.src = photo.url;
+            photoDesc.innerText = photo.desc;
+            overlay.classList.add('active');
+        }
+
+        overlay.addEventListener('click', () => {
+            overlay.classList.remove('active');
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!isDragging) treeGroup.rotation.y += 0.0015;
+            
+            const time = Date.now() * 0.0008;
+            // Chỉ làm đung đưa một số lá để giảm tải CPU khi số lượng lá cực lớn
+            for(let i=0; i<leaves.length; i+=5) {
+                leaves[i].position.y += Math.sin(time + i) * 0.001;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('click', onClick);
+        
+        window.addEventListener('touchstart', onMouseDown, {passive: true});
+        window.addEventListener('touchmove', onMouseMove, {passive: true});
+        window.addEventListener('touchend', onMouseUp);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>
