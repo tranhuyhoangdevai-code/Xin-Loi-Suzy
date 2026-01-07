@@ -15,15 +15,24 @@
         body {
             font-family: 'Nunito', sans-serif;
             background: linear-gradient(135deg, #fff5f5 0%, #fed7e2 100%);
+            /* Cho phép cuộn trang */
             overflow-x: hidden;
-            touch-action: pan-y;
+            overflow-y: auto;
+            min-height: 100vh;
         }
         
         .handwriting {
             font-family: 'Dancing Script', cursive;
         }
 
-        /* Floating Hearts Animation */
+        /* Floating Hearts Animation - Fixed background */
+        #hearts-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .heart {
             position: absolute;
             color: #ff9999;
@@ -32,7 +41,7 @@
         }
 
         @keyframes float {
-            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            0% { transform: translateY(110vh) scale(0.5); opacity: 0; }
             20% { opacity: 0.6; }
             100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
         }
@@ -121,88 +130,111 @@
             display: none;
             opacity: 0;
         }
+
+        /* Đảm bảo khung bao ngoài flex-col để căn giữa nội dung khi cuộn */
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 2rem 0;
+            position: relative;
+            z-index: 10;
+        }
     </style>
 </head>
-<body class="min-h-[100dvh] flex items-center justify-center relative overflow-hidden">
+<body class="p-4">
 
-    <div id="hearts-container" class="absolute inset-0 overflow-hidden pointer-events-none z-0"></div>
+    <div id="hearts-container"></div>
 
-    <!-- ENVELOPE VIEW -->
-    <div id="envelope-view" class="z-20 text-center px-4 w-full transition-all duration-700">
-        <div class="relative w-72 h-48 md:w-96 md:h-64 envelope-bg rounded-xl mx-auto flex flex-col items-center justify-center border-4 border-white">
-            <!-- Decorative Flap -->
-            <div class="absolute top-0 left-0 w-full h-1/2 bg-rose-400 rounded-t-xl" style="clip-path: polygon(0 0, 100% 0, 50% 100%);"></div>
-            
-            <div class="z-10 mt-8 text-white">
-                <h2 class="text-2xl md:text-3xl font-bold handwriting">Gửi Suzy của anh</h2>
-                <p class="text-[10px] uppercase tracking-widest mt-1 opacity-80">Lời xin lỗi từ nơi xa</p>
-            </div>
-
-            <!-- Slide to Unlock Interface -->
-            <div class="slider-container mt-auto mb-4">
-                <div class="slider-text uppercase text-[10px]">Trượt để mở thư</div>
-                <div id="slider-handle" class="slider-handle">
-                    <i data-lucide="chevron-right"></i>
+    <div class="main-wrapper">
+        <!-- ENVELOPE VIEW -->
+        <div id="envelope-view" class="text-center px-4 w-full transition-all duration-700">
+            <div class="relative w-72 h-48 md:w-96 md:h-64 envelope-bg rounded-xl mx-auto flex flex-col items-center justify-center border-4 border-white">
+                <!-- Decorative Flap -->
+                <div class="absolute top-0 left-0 w-full h-1/2 bg-rose-400 rounded-t-xl" style="clip-path: polygon(0 0, 100% 0, 50% 100%);"></div>
+                
+                <div class="z-10 mt-8 text-white">
+                    <h2 class="text-2xl md:text-3xl font-bold handwriting">Gửi Suzy của anh</h2>
+                    <p class="text-[10px] uppercase tracking-widest mt-1 opacity-80">Lời xin lỗi từ nơi xa</p>
                 </div>
-            </div>
-        </div>
-        <p class="text-rose-600 mt-6 font-semibold animate-pulse italic text-sm md:text-base">Mở thư ra nhé, em đừng giận anh nữa...</p>
-    </div>
 
-    <!-- MAIN LETTER CONTENT -->
-    <div id="main-card" class="container mx-auto px-4 z-10 relative hidden-card w-full">
-        <div class="max-w-xl mx-auto letter-bg rounded-2xl shadow-2xl overflow-hidden border border-rose-100 w-full">
-            
-            <div class="bg-rose-50 h-24 md:h-32 flex items-center justify-center relative border-b border-rose-100">
-                <div class="absolute -bottom-8 bg-white p-2 rounded-full shadow-md">
-                    <div class="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center text-white">
-                        <i data-lucide="map-pin" class="w-8 h-8"></i>
+                <!-- Slide to Unlock Interface -->
+                <div class="slider-container mt-auto mb-4">
+                    <div class="slider-text uppercase text-[10px]">Trượt để mở thư</div>
+                    <div id="slider-handle" class="slider-handle">
+                        <i data-lucide="chevron-right"></i>
                     </div>
                 </div>
             </div>
+            <p class="text-rose-600 mt-6 font-semibold animate-pulse italic text-sm md:text-base">Mở thư ra nhé, em đừng giận anh nữa...</p>
+        </div>
 
-            <div class="pt-12 pb-8 px-6 md:pt-14 md:pb-10 md:px-10 text-center">
-                <h1 class="text-2xl md:text-3xl text-gray-800 font-bold mb-1 handwriting">Suzy thương yêu của anh,</h1>
-                <p class="text-rose-400 font-semibold mb-6 text-xs uppercase tracking-widest">Long Distance Apology</p>
+        <!-- MAIN LETTER CONTENT -->
+        <div id="main-card" class="hidden-card w-full max-w-xl">
+            <div class="letter-bg rounded-2xl shadow-2xl overflow-hidden border border-rose-100 w-full">
+                
+                <div class="bg-rose-50 h-20 md:h-24 flex items-center justify-center relative border-b border-rose-100">
+                    <div class="absolute -bottom-8 bg-white p-2 rounded-full shadow-md">
+                        <div class="w-14 h-14 bg-rose-500 rounded-full flex items-center justify-center text-white">
+                            <i data-lucide="map-pin" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
 
-                <div class="space-y-4 text-gray-700 text-left leading-relaxed text-sm md:text-base italic">
-                    <p>
-                        Anh viết những dòng này với tất cả sự hối lỗi dành cho em. Anh biết khoảng cách giữa chúng mình vốn đã chẳng dễ dàng gì, vậy mà tối qua anh lại còn vô tâm để em phải thức khuya chờ đợi chỉ vì anh về trễ.
-                    </p>
-                    <p>
-                        Anh biết sáng sớm nay em đã phải thức dậy để đi làm, và việc thiếu ngủ sẽ khiến em mệt mỏi suốt cả ngày hôm nay. Nghĩ đến cảnh em vừa buồn ngủ, vừa lo lắng nhìn vào màn hình điện thoại chờ tin nhắn của anh, anh thực sự thấy mình tệ quá.
-                    </p>
-                    <p>
-                        Yêu xa, thời gian dành cho nhau qua màn hình là thứ quý giá nhất, vậy mà anh lại lãng phí nó và còn làm em phải tổn thương. Anh xin lỗi vì đã không trân trọng giấc ngủ và sức khỏe của em, xin lỗi vì đã khiến em buồn lòng ở nơi phương xa ấy.
-                    </p>
-                    <p>
-                        Lần sau anh hứa sẽ về sớm hơn, hoặc ít nhất là không bao giờ để em phải thức đợi trong vô vọng như thế nữa. Anh thương em rất nhiều và chỉ mong em giữ gìn sức khỏe thật tốt.
-                    </p>
-                    <p class="font-bold text-center text-rose-600 not-italic border-t border-rose-100 pt-4">
+                <div class="pt-10 pb-6 px-6 md:pt-12 md:pb-8 md:px-10 text-center">
+                    <h1 class="text-2xl md:text-3xl text-gray-800 font-bold mb-1 handwriting">Suzy thương yêu của anh,</h1>
+                    <p class="text-rose-400 font-semibold mb-4 text-xs uppercase tracking-widest">Long Distance Apology</p>
+
+                    <!-- Nội dung thư không giới hạn chiều cao nữa -->
+                    <div class="space-y-4 text-gray-700 text-left leading-relaxed text-sm md:text-base italic">
+                        <p>
+                            Anh viết những dòng này với tất cả sự hối lỗi dành cho em. Anh biết khoảng cách giữa chúng mình vốn đã chẳng dễ dàng gì, vậy mà tối qua anh lại còn vô tâm để em phải thức khuya chờ đợi chỉ vì anh về trễ.
+                        </p>
+                        <p>
+                            Anh biết sáng sớm nay em đã phải thức dậy để đi làm, và việc thiếu ngủ sẽ khiến em mệt mỏi suốt cả ngày hôm nay. Nghĩ đến cảnh em vừa buồn ngủ, vừa lo lắng nhìn vào màn hình điện thoại chờ tin nhắn của anh, anh thực sự thấy mình tệ quá.
+                        </p>
+                        <p>
+                            Yêu xa, thời gian dành cho nhau qua màn hình là thứ quý giá nhất, vậy mà anh lại lãng phí nó và còn làm em phải tổn thương. Anh xin lỗi vì đã không trân trọng giấc ngủ và sức khỏe của em, xin lỗi vì đã khiến em buồn lòng ở nơi phương xa ấy.
+                        </p>
+                        <p>
+                            Lần sau anh hứa sẽ về sớm hơn, hoặc ít nhất là không bao giờ để em phải thức đợi trong vô vọng như thế nữa. Anh thương em rất nhiều và chỉ mong em giữ gìn sức khỏe thật tốt.
+                        </p>
+                        <p>
+                            Dù ở xa nhau, nhưng trái tim anh lúc nào cũng hướng về em. Anh mong em sớm nhận được lời xin lỗi chân thành này và mỉm cười cho anh nhẹ lòng nhé.
+                        </p>
+                        <p>
+                            Anh hứa sẽ bù đắp cho em thật nhiều khi chúng mình gặp lại nhau. Còn bây giờ, hãy cho anh một cơ hội để sửa sai nhé. Yêu em vô cùng!
+                        </p>
+                    </div>
+
+                    <p class="font-bold text-center text-rose-600 not-italic border-t border-rose-100 pt-4 mt-6">
                         "Anh sai rồi, em đừng giận anh nữa nhé?"
                     </p>
-                </div>
 
-                <div class="mt-8 flex flex-col gap-3 justify-center items-center">
-                    <button id="forgiveBtn" class="w-full sm:w-auto px-10 py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base touch-manipulation">
-                        <i data-lucide="heart" class="w-5 h-5"></i>
-                        Em tha lỗi cho anh nha
-                    </button>
-                    
-                    <button id="musicBtn" class="text-xs text-gray-400 hover:text-rose-500 flex items-center gap-2 mt-2 transition-colors py-2 touch-manipulation">
-                        <i data-lucide="volume-2" class="w-4 h-4"></i>
-                        <span id="musicText">Bật chút nhạc piano nhé?</span>
-                    </button>
+                    <div class="mt-8 flex flex-col gap-3 justify-center items-center">
+                        <button id="forgiveBtn" class="w-full sm:w-auto px-10 py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base touch-manipulation">
+                            <i data-lucide="heart" class="w-5 h-5"></i>
+                            Em tha lỗi cho anh nha
+                        </button>
+                        
+                        <button id="musicBtn" class="text-xs text-gray-400 hover:text-rose-500 flex items-center gap-2 mt-2 transition-colors py-2 touch-manipulation">
+                            <i data-lucide="volume-2" class="w-4 h-4"></i>
+                            <span id="musicText">Bật chút nhạc piano nhé?</span>
+                        </button>
+                    </div>
                 </div>
+                
+                <audio id="bgMusic" loop preload="auto">
+                    <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=piano-moment-111584.mp3" type="audio/mpeg">
+                </audio>
+
             </div>
             
-            <audio id="bgMusic" loop preload="auto">
-                <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=piano-moment-111584.mp3" type="audio/mpeg">
-            </audio>
-
+            <p class="text-center text-rose-300 text-[10px] mt-6 mb-4 tracking-widest uppercase">Sincerely from Huy Hoàng to his only Suzy</p>
         </div>
-        
-        <p class="text-center text-rose-300 text-[10px] mt-6 tracking-widest uppercase">Sincerely from Huy Hoàng to his only Suzy</p>
     </div>
 
     <!-- Success Modal -->
@@ -233,7 +265,8 @@
         
         let isDragging = false;
         let startX = 0;
-        const maxSlide = container.offsetWidth - handle.offsetWidth - 10;
+        
+        const getMaxSlide = () => container.offsetWidth - handle.offsetWidth - 10;
 
         function startDrag(e) {
             isDragging = true;
@@ -245,13 +278,13 @@
             if (!isDragging) return;
             const currentX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
             let deltaX = currentX - startX;
+            const maxSlide = getMaxSlide();
             
             if (deltaX < 0) deltaX = 0;
             if (deltaX > maxSlide) deltaX = maxSlide;
             
             handle.style.transform = `translateX(${deltaX}px)`;
             
-            // Check for success
             if (deltaX >= maxSlide * 0.95) {
                 openLetter();
             }
@@ -260,7 +293,10 @@
         function stopDrag() {
             if (!isDragging) return;
             isDragging = false;
-            if (parseInt(handle.style.transform.replace('translateX(', '')) < maxSlide * 0.95) {
+            const maxSlide = getMaxSlide();
+            const currentX = parseInt(handle.style.transform.replace('translateX(', '')) || 0;
+            
+            if (currentX < maxSlide * 0.95) {
                 handle.style.transition = 'transform 0.3s ease';
                 handle.style.transform = 'translateX(0px)';
             }
@@ -268,28 +304,29 @@
 
         function openLetter() {
             isDragging = false;
-            envelopeView.style.transform = 'scale(1.2)';
+            envelopeView.style.transform = 'scale(1.1) translateY(-20px)';
             envelopeView.style.opacity = '0';
             
             setTimeout(() => {
-                envelopeView.classList.add('hidden');
+                envelopeView.style.display = 'none';
                 mainCard.classList.remove('hidden-card');
                 mainCard.classList.add('fade-in');
                 mainCard.style.display = 'block';
                 mainCard.style.opacity = '1';
+                
+                lucide.createIcons();
             }, 600);
         }
 
-        // Event Listeners
         handle.addEventListener('mousedown', startDrag);
         window.addEventListener('mousemove', onDrag);
         window.addEventListener('mouseup', stopDrag);
         
-        handle.addEventListener('touchstart', startDrag);
-        window.addEventListener('touchmove', onDrag);
+        handle.addEventListener('touchstart', startDrag, {passive: true});
+        window.addEventListener('touchmove', onDrag, {passive: true});
         window.addEventListener('touchend', stopDrag);
 
-        // --- Heart Effects ---
+        // --- Heart Effects (Fixed Background) ---
         const heartsContainer = document.getElementById('hearts-container');
         function createHeart() {
             const heart = document.createElement('div');
@@ -301,7 +338,7 @@
             heartsContainer.appendChild(heart);
             setTimeout(() => { heart.remove(); }, 6000);
         }
-        setInterval(createHeart, 500);
+        setInterval(createHeart, 600);
 
         // --- Music ---
         const musicBtn = document.getElementById('musicBtn');
@@ -310,7 +347,7 @@
         let isPlaying = false;
         musicBtn.addEventListener('click', () => {
             if (isPlaying) { audio.pause(); musicText.innerText = "Bật chút nhạc piano nhé?"; }
-            else { audio.volume = 0.4; audio.play(); musicText.innerText = "Tắt nhạc"; }
+            else { audio.volume = 0.4; audio.play().catch(e => console.log("Play blocked")); musicText.innerText = "Tắt nhạc"; }
             isPlaying = !isPlaying;
         });
 
@@ -319,8 +356,14 @@
         const modal = document.getElementById('successModal');
         const canvas = document.getElementById('confetti-canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
         let confetti = [];
 
         forgiveBtn.addEventListener('click', () => {
@@ -330,12 +373,13 @@
         });
 
         initConfetti = () => {
-            for (let i = 0; i < 150; i++) {
+            confetti = [];
+            for (let i = 0; i < 100; i++) {
                 confetti.push({
                     position: { x: window.innerWidth/2, y: window.innerHeight/2 },
-                    velocity: { x: (Math.random() - 0.5) * 20, y: (Math.random() - 0.5) * 20 },
-                    size: Math.random() * 10 + 5,
-                    color: '#f43f5e'
+                    velocity: { x: (Math.random() - 0.5) * 15, y: (Math.random() - 0.5) * 25 },
+                    size: Math.random() * 8 + 4,
+                    color: ['#f43f5e', '#fb7185', '#fda4af'][Math.floor(Math.random()*3)]
                 });
             }
         };
@@ -345,7 +389,7 @@
             confetti.forEach((c, i) => {
                 c.position.x += c.velocity.x;
                 c.position.y += c.velocity.y;
-                c.velocity.y += 0.5;
+                c.velocity.y += 0.4;
                 ctx.fillStyle = c.color;
                 ctx.fillRect(c.position.x, c.position.y, c.size, c.size);
                 if (c.position.y > canvas.height) confetti.splice(i, 1);
