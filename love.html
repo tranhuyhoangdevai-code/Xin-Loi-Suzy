@@ -3,377 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gửi Suzy - Lời xin lỗi chân thành từ Huy Hoàng</title>
-    <!-- Tailwind CSS -->
+    <title>Cây Tình Yêu Của Suzy</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #fff5f5 0%, #fed7e2 100%);
             font-family: 'Nunito', sans-serif;
-            background: linear-gradient(135deg, #fff5f5 0%, #fed7e2 100%);
-            overflow-x: hidden;
-            overflow-y: auto;
-            min-height: 100vh;
         }
-        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+        }
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+        .ui-overlay {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+            width: 90%;
+        }
         .handwriting {
             font-family: 'Dancing Script', cursive;
         }
-
-        #hearts-container {
+        #photo-overlay {
             position: fixed;
             inset: 0;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .heart {
-            position: absolute;
-            color: #ff9999;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
             opacity: 0;
-            animation: float 6s ease-in infinite;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(110vh) scale(0.5); opacity: 0; }
-            20% { opacity: 0.6; }
-            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
-        }
-
-        .fade-in {
-            animation: fadeIn 1s ease-out forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .envelope-bg {
-            background: #f43f5e;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-
-        .slider-container {
-            width: 100%;
-            max-width: 280px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            transition: opacity 0.4s ease;
             backdrop-filter: blur(5px);
-            border-radius: 50px;
+        }
+        #photo-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #photo-card {
+            max-width: 90%;
+            max-height: 85%;
+            background: white;
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
-            padding: 5px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            margin: 20px auto;
-            overflow: hidden;
         }
-
-        .slider-handle {
-            width: 50px;
-            height: 50px;
-            background: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f43f5e;
-            cursor: grab;
-            position: absolute;
-            left: 5px;
-            z-index: 2;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.1s ease;
+        #photo-overlay.active #photo-card {
+            transform: scale(1);
         }
-
-        .slider-text {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            left: 0;
-            top: 0;
-            color: #fff;
-            font-weight: 600;
-            font-size: 0.9rem;
-            pointer-events: none;
-            opacity: 0.8;
-            letter-spacing: 1px;
+        #photo-img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+            display: block;
+            object-fit: contain;
+            margin: 0 auto;
         }
-
-        .letter-bg {
-            background-image: radial-gradient(#f0f0f0 1.5px, transparent 1.5px);
-            background-size: 20px 20px;
-            background-color: #ffffff;
-        }
-
-        #confetti-canvas {
+        .back-btn {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 50;
-        }
-
-        .hidden-card {
-            display: none;
-            opacity: 0;
-        }
-
-        .main-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            width: 100%;
-            padding: 2rem 0;
-            position: relative;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: #f43f5e;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(244, 63, 94, 0.2);
             z-index: 10;
+            transition: all 0.3s ease;
+            border: 1px solid #fecaca;
+        }
+        .back-btn:hover {
+            background: #f43f5e;
+            color: white;
+        }
+        .close-hint {
+            color: white;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            opacity: 0.7;
         }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-    <div id="hearts-container"></div>
-
-    <div class="main-wrapper">
-        <!-- ENVELOPE VIEW -->
-        <div id="envelope-view" class="text-center px-4 w-full transition-all duration-700">
-            <div class="relative w-72 h-48 md:w-96 md:h-64 envelope-bg rounded-xl mx-auto flex flex-col items-center justify-center border-4 border-white">
-                <div class="absolute top-0 left-0 w-full h-1/2 bg-rose-400 rounded-t-xl" style="clip-path: polygon(0 0, 100% 0, 50% 100%);"></div>
-                
-                <div class="z-10 mt-8 text-white">
-                    <h2 class="text-2xl md:text-3xl font-bold handwriting">Gửi Suzy của anh</h2>
-                    <p class="text-[10px] uppercase tracking-widest mt-1 opacity-80">Lời xin lỗi từ nơi xa</p>
-                </div>
-
-                <div class="slider-container mt-auto mb-4">
-                    <div class="slider-text uppercase text-[10px]">Trượt để mở thư</div>
-                    <div id="slider-handle" class="slider-handle">
-                        <i data-lucide="chevron-right"></i>
-                    </div>
-                </div>
-            </div>
-            <p class="text-rose-600 mt-6 font-semibold animate-pulse italic text-sm md:text-base">Mở thư ra nhé, em đừng giận anh nữa...</p>
-        </div>
-
-        <!-- MAIN LETTER CONTENT -->
-        <div id="main-card" class="hidden-card w-full max-w-xl">
-            <div class="letter-bg rounded-2xl shadow-2xl overflow-hidden border border-rose-100 w-full">
-                
-                <div class="bg-rose-50 h-20 md:h-24 flex items-center justify-center relative border-b border-rose-100">
-                    <div class="absolute -bottom-8 bg-white p-2 rounded-full shadow-md">
-                        <div class="w-14 h-14 bg-rose-500 rounded-full flex items-center justify-center text-white">
-                            <i data-lucide="map-pin" class="w-6 h-6"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pt-10 pb-6 px-6 md:pt-12 md:pb-8 md:px-10 text-center">
-                    <h1 class="text-2xl md:text-3xl text-gray-800 font-bold mb-1 handwriting">Suzy thương yêu của anh,</h1>
-                    <p class="text-rose-400 font-semibold mb-4 text-xs uppercase tracking-widest">Long Distance Apology</p>
-
-                    <div class="space-y-4 text-gray-700 text-left leading-relaxed text-sm md:text-base italic">
-                        <p>Anh viết những dòng này với tất cả sự hối lỗi dành cho em. Anh biết khoảng cách giữa chúng mình vốn đã chẳng dễ dàng gì, vậy mà tối qua anh lại còn vô tâm để em phải thức khuya chờ đợi chỉ vì anh về trễ.</p>
-                        <p>Anh biết sáng sớm nay em đã phải thức dậy để đi làm, và việc thiếu ngủ sẽ khiến em mệt mỏi suốt cả ngày hôm nay. Nghĩ đến cảnh em vừa buồn ngủ, vừa lo lắng nhìn vào màn hình điện thoại chờ tin nhắn của anh, anh thực sự thấy mình tệ quá.</p>
-                        <p>Yêu xa, thời gian dành cho nhau qua màn hình là thứ quý giá nhất, vậy mà anh lại lãng phí nó và còn làm em phải tổn thương. Anh xin lỗi vì đã không trân trọng giấc ngủ và sức khỏe của em, xin lỗi vì đã khiến em buồn lòng ở nơi phương xa ấy.</p>
-                        <p>Lần sau anh hứa sẽ về sớm hơn, hoặc ít nhất là không bao giờ để em phải thức đợi trong vô vọng như thế nữa. Anh thương em rất nhiều và chỉ mong em giữ gìn sức khỏe thật tốt.</p>
-                        <p>Dù ở xa nhau, nhưng trái tim anh lúc nào cũng hướng về em. Anh mong em sớm nhận được lời xin lỗi chân thành này và mỉm cười cho anh nhẹ lòng nhé.</p>
-                        <p>Anh hứa sẽ bù đắp cho em thật nhiều khi chúng mình gặp lại nhau. Còn bây giờ, hãy cho anh một cơ hội để sửa sai nhé. Yêu em vô cùng!</p>
-                    </div>
-
-                    <p class="font-bold text-center text-rose-600 not-italic border-t border-rose-100 pt-4 mt-6">
-                        "Anh sai rồi, em đừng giận anh nữa nhé?"
-                    </p>
-
-                    <div class="mt-8 flex flex-col gap-3 justify-center items-center">
-                        <button id="forgiveBtn" class="w-full sm:w-80 px-10 py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base touch-manipulation">
-                            <i data-lucide="heart" class="w-5 h-5"></i>
-                            Em tha lỗi cho anh nha
-                        </button>
-
-                        <a href="love.html" class="w-full sm:w-80 px-10 py-4 bg-white border-2 border-rose-400 text-rose-500 hover:bg-rose-50 font-bold rounded-full shadow-md transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base touch-manipulation">
-                            <i data-lucide="trees" class="w-5 h-5"></i>
-                            Khám phá cây tình yêu
-                        </a>
-                        
-                        <button id="musicBtn" class="text-xs text-gray-400 hover:text-rose-500 flex items-center gap-2 mt-2 transition-colors py-2 touch-manipulation">
-                            <i data-lucide="volume-2" class="w-4 h-4"></i>
-                            <span id="musicText">Bật chút nhạc piano nhé?</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <audio id="bgMusic" loop preload="auto">
-                    <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=piano-moment-111584.mp3" type="audio/mpeg">
-                </audio>
-            </div>
-            
-            <p class="text-center text-rose-300 text-[10px] mt-6 mb-4 tracking-widest uppercase">Sincerely from Huy Hoàng to his only Suzy</p>
-        </div>
+    <div class="ui-overlay">
+        <h1 class="text-3xl md:text-4xl text-rose-500 handwriting font-bold drop-shadow-sm">Cây Tình Yêu của Chúng Mình</h1>
+        <p class="text-gray-500 text-xs md:text-sm mt-2 italic">Chạm vào tán lá để xem lại những kỷ niệm</p>
     </div>
 
-    <!-- Success Modal -->
-    <div id="successModal" class="fixed inset-0 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-500 px-4">
-        <div class="absolute inset-0 bg-rose-900 bg-opacity-30 backdrop-blur-sm"></div>
-        <div class="bg-white rounded-3xl p-8 w-full max-w-sm mx-auto shadow-2xl transform scale-90 transition-transform duration-300 relative z-10 text-center">
-            <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500">
-                <i data-lucide="party-popper" class="w-10 h-10"></i>
+    <a href="index.html" class="back-btn">← Quay lại bức thư</a>
+
+    <div id="canvas-container"></div>
+
+    <!-- Modal hiển thị ảnh kỷ niệm -->
+    <div id="photo-overlay">
+        <div class="flex flex-col items-center">
+            <div id="photo-card" onclick="event.stopPropagation()">
+                <img id="photo-img" src="" alt="Kỷ niệm" onerror="this.src='https://via.placeholder.com/400x600?text=Kỷ+Niệm+Của+Chúng+Ta'">
+                <p id="photo-desc" class="mt-4 text-center text-rose-600 font-semibold italic text-lg handwriting"></p>
             </div>
-            <h3 class="text-2xl font-bold text-gray-800 mb-2 handwriting uppercase">Cảm ơn em yêu!</h3>
-            <p class="text-gray-600 text-sm">Anh hứa sẽ không để em phải thức khuya chờ đợi nữa. Anh yêu em rất nhiều! ❤️</p>
-            <button onclick="closeModal()" class="mt-6 w-full py-3 bg-rose-500 text-white font-bold rounded-xl transition touch-manipulation">
-                Yêu anh nhất!
-            </button>
+            <p class="close-hint">Chạm ra ngoài để tiếp tục quay cây</p>
         </div>
     </div>
-
-    <canvas id="confetti-canvas"></canvas>
 
     <script>
-        lucide.createIcons();
+        // Danh sách ảnh định dạng .jpg
+        const photos = [
+            { url: "jpg1.jpg", desc: "Mãi yêu em, Suzy của anh" },
+            { url: "jpg2.jpg", desc: "Khoảnh khắc mình bên nhau" },
+            { url: "jpg3.jpg", desc: "Nụ cười em làm anh say đắm" },
+            { url: "jpg4.jpg", desc: "Cảm ơn em đã luôn ở bên" },
+            { url: "jpg5.jpg", desc: "Kỷ niệm khó quên của hai ta" },
+            { url: "jpg6.jpg", desc: "Dù xa nhau nhưng lòng vẫn gần" },
+            { url: "jpg7.jpg", desc: "Suzy là điều tuyệt vời nhất" },
+            { url: "jpg8.jpg", desc: "Hẹn gặp lại em sớm nhất nhé" },
+            { url: "jpg9.jpg", desc: "Anh hứa sẽ không làm em buồn" },
+            { url: "jpg10.jpg", desc: "Trái tim anh chỉ có mỗi em" }
+        ];
 
-        const handle = document.getElementById('slider-handle');
-        const container = handle.parentElement;
-        const envelopeView = document.getElementById('envelope-view');
-        const mainCard = document.getElementById('main-card');
-        
+        let scene, camera, renderer, treeGroup;
         let isDragging = false;
-        let startX = 0;
-        
-        const getMaxSlide = () => container.offsetWidth - handle.offsetWidth - 10;
+        let previousMouseX = 0;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let leaves = [];
+        let specialLeaves = [];
 
-        function startDrag(e) {
-            isDragging = true;
-            startX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX;
-            handle.style.transition = 'none';
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 7, 18);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 0.6);
+            pointLight.position.set(10, 20, 10);
+            scene.add(pointLight);
+
+            treeGroup = new THREE.Group();
+            createTree();
+            scene.add(treeGroup);
+
+            animate();
         }
 
-        function onDrag(e) {
-            if (!isDragging) return;
-            const currentX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
-            let deltaX = currentX - startX;
-            const maxSlide = getMaxSlide();
+        function createTree() {
+            // Thân cây
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.8, 12, 16);
+            const trunkMat = new THREE.MeshLambertMaterial({ color: 0x3d2b1f });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 1;
+            treeGroup.add(trunk);
+
+            // Tạo Shape Trái tim cho lá
+            const heartShape = new THREE.Shape();
+            const x = 0, y = 0;
+            heartShape.moveTo( x + 5, y + 5 );
+            heartShape.bezierCurveTo( x + 5, y + 5, x + 4, y, x, y );
+            heartShape.bezierCurveTo( x - 6, y, x - 6, y + 7,x - 6, y + 7 );
+            heartShape.bezierCurveTo( x - 6, y + 11, x - 3, y + 15.4, x + 5, y + 19 );
+            heartShape.bezierCurveTo( x + 12, y + 15.4, x + 16, y + 11, x + 16, y + 7 );
+            heartShape.bezierCurveTo( x + 16, y + 7, x + 16, y, x + 10, y );
+            heartShape.bezierCurveTo( x + 7, y, x + 5, y + 5, x + 5, y + 5 );
+
+            const leafGeo = new THREE.ShapeGeometry(heartShape);
             
-            if (deltaX < 0) deltaX = 0;
-            if (deltaX > maxSlide) deltaX = maxSlide;
-            
-            handle.style.transform = `translateX(${deltaX}px)`;
-            
-            if (deltaX >= maxSlide * 0.95) {
-                openLetter();
-            }
-        }
+            // Số lượng lá cực dày (4500 lá)
+            const leafCount = 4500;
+            const colors = [0xf43f5e, 0xfb7185, 0xff85a1, 0xffb3c1, 0xffcad4];
 
-        function stopDrag() {
-            if (!isDragging) return;
-            isDragging = false;
-            const maxSlide = getMaxSlide();
-            const currentX = parseInt(handle.style.transform.replace('translateX(', '')) || 0;
-            
-            if (currentX < maxSlide * 0.95) {
-                handle.style.transition = 'transform 0.3s ease';
-                handle.style.transform = 'translateX(0px)';
-            }
-        }
-
-        function openLetter() {
-            isDragging = false;
-            envelopeView.style.transform = 'scale(1.1) translateY(-20px)';
-            envelopeView.style.opacity = '0';
-            
-            setTimeout(() => {
-                envelopeView.style.display = 'none';
-                mainCard.classList.remove('hidden-card');
-                mainCard.classList.add('fade-in');
-                mainCard.style.display = 'block';
-                mainCard.style.opacity = '1';
-                lucide.createIcons();
-            }, 600);
-        }
-
-        handle.addEventListener('mousedown', startDrag);
-        window.addEventListener('mousemove', onDrag);
-        window.addEventListener('mouseup', stopDrag);
-        handle.addEventListener('touchstart', startDrag, {passive: true});
-        window.addEventListener('touchmove', onDrag, {passive: true});
-        window.addEventListener('touchend', stopDrag);
-
-        const heartsContainer = document.getElementById('hearts-container');
-        function createHeart() {
-            const heart = document.createElement('div');
-            heart.classList.add('heart');
-            heart.innerHTML = '❤'; 
-            heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.animationDuration = Math.random() * 2 + 5 + 's'; 
-            heart.style.fontSize = Math.random() * 15 + 10 + 'px';
-            heartsContainer.appendChild(heart);
-            setTimeout(() => { heart.remove(); }, 6000);
-        }
-        setInterval(createHeart, 600);
-
-        const musicBtn = document.getElementById('musicBtn');
-        const musicText = document.getElementById('musicText');
-        const audio = document.getElementById('bgMusic');
-        let isPlaying = false;
-        musicBtn.addEventListener('click', () => {
-            if (isPlaying) { audio.pause(); musicText.innerText = "Bật chút nhạc piano nhé?"; }
-            else { audio.volume = 0.4; audio.play().catch(e => console.log("Play blocked")); musicText.innerText = "Tắt nhạc"; }
-            isPlaying = !isPlaying;
-        });
-
-        const forgiveBtn = document.getElementById('forgiveBtn');
-        const modal = document.getElementById('successModal');
-        const canvas = document.getElementById('confetti-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        let confetti = [];
-        forgiveBtn.addEventListener('click', () => {
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            initConfetti();
-            renderConfetti();
-        });
-
-        initConfetti = () => {
-            confetti = [];
-            for (let i = 0; i < 100; i++) {
-                confetti.push({
-                    position: { x: window.innerWidth/2, y: window.innerHeight/2 },
-                    velocity: { x: (Math.random() - 0.5) * 15, y: (Math.random() - 0.5) * 25 },
-                    size: Math.random() * 8 + 4,
-                    color: ['#f43f5e', '#fb7185', '#fda4af'][Math.floor(Math.random()*3)]
+            for (let i = 0; i < leafCount; i++) {
+                const isSpecial = i < 10; // 10 lá đầu tiên mang ảnh
+                const material = new THREE.MeshLambertMaterial({ 
+                    color: isSpecial ? 0xf43f5e : colors[Math.floor(Math.random() * colors.length)],
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.95
                 });
+                
+                const leaf = new THREE.Mesh(leafGeo, material);
+                
+                // Phân bổ hình cầu cho tán lá
+                const r = 4.0 + Math.pow(Math.random(), 0.5) * 5.0; 
+                const phi = Math.acos(-1 + (2 * i) / leafCount);
+                const theta = Math.sqrt(leafCount * Math.PI) * phi;
+
+                leaf.position.x = r * Math.sin(phi) * Math.cos(theta);
+                leaf.position.y = 8 + r * Math.cos(phi) * 0.85;
+                leaf.position.z = r * Math.sin(phi) * Math.sin(theta);
+
+                leaf.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                
+                const s = isSpecial ? 0.04 : (0.01 + Math.random() * 0.015);
+                leaf.scale.set(s, s, s);
+
+                if (isSpecial) {
+                    leaf.userData.photoIndex = i;
+                    specialLeaves.push(leaf);
+                }
+
+                treeGroup.add(leaf);
+                leaves.push(leaf);
             }
-        };
+        }
 
-        renderConfetti = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            confetti.forEach((c, i) => {
-                c.position.x += c.velocity.x;
-                c.position.y += c.velocity.y;
-                c.velocity.y += 0.4;
-                ctx.fillStyle = c.color;
-                ctx.fillRect(c.position.x, c.position.y, c.size, c.size);
-                if (c.position.y > canvas.height) confetti.splice(i, 1);
-            });
-            if (confetti.length > 0) requestAnimationFrame(renderConfetti);
-        };
+        function onMouseDown(e) { 
+            isDragging = true; 
+            previousMouseX = e.clientX || (e.touches ? e.touches[0].clientX : 0); 
+        }
 
-        window.closeModal = () => modal.classList.add('opacity-0', 'pointer-events-none');
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            const currentX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+            const deltaX = currentX - previousMouseX;
+            treeGroup.rotation.y += deltaX * 0.007;
+            previousMouseX = currentX;
+        }
+
+        function onMouseUp() { isDragging = false; }
+
+        function onClick(e) {
+            if (isDragging) return;
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(leaves);
+
+            if (intersects.length > 0) {
+                const clickedLeaf = intersects[0].object;
+                let photoIdx = clickedLeaf.userData.photoIndex;
+
+                // Nếu click lá thường, tìm lá đặc biệt gần nhất để hiển thị kỷ niệm
+                if (photoIdx === undefined) {
+                    let minDist = Infinity;
+                    specialLeaves.forEach(sl => {
+                        const dist = clickedLeaf.position.distanceTo(sl.position);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            photoIdx = sl.userData.photoIndex;
+                        }
+                    });
+                }
+                showPhoto(photoIdx);
+            }
+        }
+
+        const overlay = document.getElementById('photo-overlay');
+        const photoImg = document.getElementById('photo-img');
+        const photoDesc = document.getElementById('photo-desc');
+
+        function showPhoto(index) {
+            const photo = photos[index % photos.length];
+            photoImg.src = photo.url;
+            photoDesc.innerText = photo.desc;
+            overlay.classList.add('active');
+        }
+
+        overlay.addEventListener('click', () => {
+            overlay.classList.remove('active');
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!isDragging) treeGroup.rotation.y += 0.0015;
+            
+            const time = Date.now() * 0.001;
+            // Hiệu ứng lung linh cho lá
+            for(let i=0; i<leaves.length; i+=50) {
+                leaves[i].rotation.z += Math.sin(time + i) * 0.002;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('click', onClick);
+        
+        window.addEventListener('touchstart', onMouseDown, {passive: true});
+        window.addEventListener('touchmove', onMouseMove, {passive: true});
+        window.addEventListener('touchend', onMouseUp);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = init;
     </script>
 </body>
 </html>
